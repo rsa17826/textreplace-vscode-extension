@@ -19,7 +19,11 @@ function loadReplacements(workspaceRoot: string): void {
     const parsed = JSON.parse(raw) as Record<string, string>
 
     for (const [from, to] of Object.entries(parsed)) {
-      if (typeof from === "string" && typeof to === "string" && from.length > 0) {
+      if (
+        typeof from === "string" &&
+        typeof to === "string" &&
+        from.length > 0
+      ) {
         replacements.set(from, to)
       }
     }
@@ -39,10 +43,12 @@ function loadReplacements(workspaceRoot: string): void {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  const hiddenDecorationType = vscode.window.createTextEditorDecorationType({
-    textDecoration: "none; opacity: 0 !important; visibility: hidden;",
-    color: "var(--vscode-editor-foreground)",
-  })
+  const hiddenDecorationType =
+    vscode.window.createTextEditorDecorationType({
+      textDecoration:
+        "none; opacity: 0 !important; visibility: hidden;",
+      color: "var(--vscode-editor-foreground)",
+    })
 
   // ── Load & watch ─────────────────────────────────────────────────────────
 
@@ -69,7 +75,9 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  function updateDecorationsForEditor(editor: vscode.TextEditor): void {
+  function updateDecorationsForEditor(
+    editor: vscode.TextEditor,
+  ): void {
     if (!replacementPattern || replacements.size === 0) {
       editor.setDecorations(hiddenDecorationType, [])
       return
@@ -97,7 +105,6 @@ export function activate(context: vscode.ExtensionContext) {
         for (
           let i = 0, j = 0;
           i < original.length || j < transformed.length;
-
         ) {
           const oldChar = original[i]
           const newChar = transformed[j]
@@ -115,14 +122,17 @@ export function activate(context: vscode.ExtensionContext) {
             original[i + 1] === transformed[j + 1]
           ) {
             // Simple substitution: one char → one char
-            const endPos = editor.document.positionAt(matchOffset + i + 1)
+            const endPos = editor.document.positionAt(
+              matchOffset + i + 1,
+            )
             decorations.push({
               range: new vscode.Range(startPos, endPos),
               renderOptions: {
                 before: {
                   contentText: newChar,
                   color: "inherit",
-                  textDecoration: "none; position: absolute; width: 1ch;",
+                  textDecoration:
+                    "none; position: absolute; width: 1ch;",
                 },
               },
             })
@@ -144,7 +154,9 @@ export function activate(context: vscode.ExtensionContext) {
             j++
           } else if (oldChar && original[i + 1] === newChar) {
             // Deletion: hide a char without emitting a replacement
-            const endPos = editor.document.positionAt(matchOffset + i + 1)
+            const endPos = editor.document.positionAt(
+              matchOffset + i + 1,
+            )
             decorations.push({
               range: new vscode.Range(startPos, endPos),
             })
@@ -161,9 +173,9 @@ export function activate(context: vscode.ExtensionContext) {
                   contentText: newChar || "",
                   color: "inherit",
                   textDecoration:
-                    oldChar
-                      ? "none; position: absolute; width: 1ch;"
-                      : "none; position: relative;",
+                    oldChar ?
+                      "none; position: absolute; width: 1ch;"
+                    : "none; position: relative;",
                 },
               },
             })
@@ -189,9 +201,13 @@ export function activate(context: vscode.ExtensionContext) {
     null,
     context.subscriptions,
   )
-  vscode.window.onDidChangeTextEditorVisibleRanges((e) => {
-    updateDecorationsForEditor(e.textEditor)
-  }, null, context.subscriptions)
+  vscode.window.onDidChangeTextEditorVisibleRanges(
+    (e) => {
+      updateDecorationsForEditor(e.textEditor)
+    },
+    null,
+    context.subscriptions,
+  )
 
   vscode.workspace.onDidChangeWorkspaceFolders(
     reloadAndUpdate,
@@ -209,26 +225,31 @@ export function activate(context: vscode.ExtensionContext) {
       )
     }),
 
-    vscode.commands.registerCommand("textreplace.openConfig", async () => {
-      const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
-      if (!root) {
-        vscode.window.showWarningMessage(
-          "textreplace: No workspace folder is open.",
-        )
-        return
-      }
-      const configPath = path.join(root, "textreplace.json")
-      if (!fs.existsSync(configPath)) {
-        const stub = JSON.stringify(
-          { TODO: "DONE", fixme: "fixed", hello: "hi" },
-          null,
-          2,
-        )
-        fs.writeFileSync(configPath, stub, "utf-8")
-      }
-      const doc = await vscode.workspace.openTextDocument(configPath)
-      vscode.window.showTextDocument(doc)
-    }),
+    vscode.commands.registerCommand(
+      "textreplace.openConfig",
+      async () => {
+        const root =
+          vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+        if (!root) {
+          vscode.window.showWarningMessage(
+            "textreplace: No workspace folder is open.",
+          )
+          return
+        }
+        const configPath = path.join(root, "textreplace.json")
+        if (!fs.existsSync(configPath)) {
+          const stub = JSON.stringify(
+            { TODO: "DONE", fixme: "fixed", hello: "hi" },
+            null,
+            2,
+          )
+          fs.writeFileSync(configPath, stub, "utf-8")
+        }
+        const doc =
+          await vscode.workspace.openTextDocument(configPath)
+        vscode.window.showTextDocument(doc)
+      },
+    ),
   )
 
   // ── Initial load ──────────────────────────────────────────────────────────
