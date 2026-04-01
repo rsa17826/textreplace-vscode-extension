@@ -1,0 +1,35 @@
+{
+  "name": "textreplace",
+  "displayName": "Text Replace",
+  "description": "Visually replace text in your editor using textreplace.json — no file modification required.",
+  "version": "1.0.0",
+  "publisher": "your-publisher-id",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "textreplace.reload",
+        "title": "Text Replace: Reload textreplace.json"
+      },
+      {
+        "command": "textreplace.openConfig",
+        "title": "Text Replace: Open / Create textreplace.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
