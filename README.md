@@ -46,3 +46,9 @@ Then press `F5` in VS Code to launch the Extension Development Host, or package 
 - Use emoji in the replacement value for quick visual markers.
 - Works great for aliasing verbose patterns (`console.log` → `log`, `parseInt` → `Number.parseInt`).
 - Add `textreplace.json` to `.gitignore` if your replacements are personal/local.
+
+
+```sh
+echo y|npx @vscode/vsce package --allow-missing-repository
+```
+
