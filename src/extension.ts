@@ -6,7 +6,7 @@ const activeRanges = new Map<string, vscode.Range[]>()
 let replacements = new Map<string, string>()
 let replacementPattern: RegExp | null = null
 const transformCache = new Map<string, string>()
-
+const onDidUpdateRangesEmitter = new vscode.EventEmitter<vscode.Uri>()
 function loadReplacements(workspaceRoot: string): void {
   const jsonPath = path.join(workspaceRoot, "textreplace.json")
   replacements.clear()
@@ -198,8 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
       docKey,
       decorations.map((d) => d.range),
     )
-    editor.setDecorations(hiddenDecorationType, decorations)
-
+    onDidUpdateRangesEmitter.fire(editor.document.uri)
     editor.setDecorations(hiddenDecorationType, decorations)
   }
 
@@ -275,6 +274,7 @@ export function activate(context: vscode.ExtensionContext) {
     ): vscode.Range[] {
       return activeRanges.get(document.uri.toString()) ?? []
     },
+    onDidUpdateRanges: onDidUpdateRangesEmitter.event,
   }
 }
 
