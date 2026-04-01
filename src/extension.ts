@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import * as fs from "fs"
 import * as path from "path"
 
+const activeRanges = new Map<string, vscode.Range[]>()
 let replacements = new Map<string, string>()
 let replacementPattern: RegExp | null = null
 const transformCache = new Map<string, string>()
@@ -74,6 +75,13 @@ export function activate(context: vscode.ExtensionContext) {
       updateDecorationsForEditor(editor)
     }
   }
+  vscode.workspace.onDidCloseTextDocument(
+    (doc) => {
+      activeRanges.delete(doc.uri.toString())
+    },
+    null,
+    context.subscriptions,
+  )
 
   function updateDecorationsForEditor(
     editor: vscode.TextEditor,
@@ -185,6 +193,12 @@ export function activate(context: vscode.ExtensionContext) {
         }
       }
     }
+    const docKey = editor.document.uri.toString()
+    activeRanges.set(
+      docKey,
+      decorations.map((d) => d.range),
+    )
+    editor.setDecorations(hiddenDecorationType, decorations)
 
     editor.setDecorations(hiddenDecorationType, decorations)
   }
@@ -255,6 +269,13 @@ export function activate(context: vscode.ExtensionContext) {
   // ── Initial load ──────────────────────────────────────────────────────────
 
   reloadAndUpdate()
+  return {
+    getDecoratedRanges(
+      document: vscode.TextDocument,
+    ): vscode.Range[] {
+      return activeRanges.get(document.uri.toString()) ?? []
+    },
+  }
 }
 
 export function deactivate() {}
