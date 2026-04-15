@@ -2,7 +2,7 @@
   "name": "textreplace",
   "displayName": "Text Replace",
   "description": "Visually replace text in your editor using textreplace.json — no file modification required.",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "publisher": "rssaromeo",
   "engines": {
     "vscode": "^1.85.0"

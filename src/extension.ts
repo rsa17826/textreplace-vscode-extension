@@ -160,16 +160,18 @@ export function activate(context: vscode.ExtensionContext) {
               },
             })
             j++
-          } else if (oldChar && original[i + 1] === newChar) {
-            // Deletion: hide a char without emitting a replacement
-            const endPos = editor.document.positionAt(
-              matchOffset + i + 1,
-            )
-            decorations.push({
-              range: new vscode.Range(startPos, endPos),
-            })
-            i++
-          } else {
+          }
+          // else if (oldChar && original[i + 1] === newChar) {
+          //   // Deletion: hide a char without emitting a replacement
+          //   const endPos = editor.document.positionAt(
+          //     matchOffset + i + 1,
+          //   )
+          //   decorations.push({
+          //     range: new vscode.Range(startPos, endPos),
+          //   })
+          //   i++
+          // }
+          else {
             // Fallback: hide original char (if any) and emit new char (if any)
             const endPos = editor.document.positionAt(
               matchOffset + (oldChar ? i + 1 : i),
