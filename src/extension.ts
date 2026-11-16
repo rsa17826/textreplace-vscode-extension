@@ -116,67 +116,40 @@ export function activate(context: vscode.ExtensionContext) {
         ) {
           const oldChar = original[i]
           const newChar = transformed[j]
-
           const startPos = editor.document.positionAt(matchOffset + i)
 
-          // Same character — leave it alone.
           if (oldChar === newChar) {
             i++
             j++
             continue
           }
 
-          // ─────────────────────────────────────────────
-          // INSERTION
-          //
-          // Collect consecutive inserted characters into ONE
-          // decoration. Multiple zero-width decorations at the
-          // same position are what causes "<asd>" to become
-          // visually scrambled.
-          // ─────────────────────────────────────────────
-          if (
-            newChar &&
-            (!oldChar || oldChar !== transformed[j + 1])
-          ) {
-            let inserted = ""
-
-            while (
-              j < transformed.length &&
-              original[i] !== transformed[j]
-            ) {
-              inserted += transformed[j]
-              j++
-            }
-
-            if (inserted) {
-              decorations.push({
-                range: new vscode.Range(startPos, startPos),
-                renderOptions: {
-                  before: {
-                    contentText: inserted,
-                    color: "inherit",
-                    textDecoration:
-                      "none; position: relative; display: inline-block;",
-                  },
+          if (i >= original.length) {
+            // Original exhausted: emit the whole remaining tail as ONE
+            // decoration. Several zero-width decorations at the same
+            // position get rendered in scrambled order by VS Code.
+            decorations.push({
+              range: new vscode.Range(startPos, startPos),
+              renderOptions: {
+                before: {
+                  contentText: transformed.slice(j),
+                  color: "inherit",
+                  textDecoration: "none; position: relative;",
                 },
-              })
-
-              continue
-            }
+              },
+            })
+            break
           }
 
-          // ─────────────────────────────────────────────
-          // SUBSTITUTION
-          //
-          // Keep this as ONE decoration per original char.
-          // This preserves independent selection of every
-          // character in the source text.
-          // ─────────────────────────────────────────────
-          if (oldChar && newChar) {
+          if (
+            oldChar &&
+            newChar &&
+            original[i + 1] === transformed[j + 1]
+          ) {
+            // Simple substitution: one char → one char
             const endPos = editor.document.positionAt(
               matchOffset + i + 1,
             )
-
             decorations.push({
               range: new vscode.Range(startPos, endPos),
               renderOptions: {
@@ -188,51 +161,54 @@ export function activate(context: vscode.ExtensionContext) {
                 },
               },
             })
-
             i++
             j++
-            continue
+          } else if (newChar && oldChar === transformed[j + 1]) {
+            // Insertion: add a char without consuming original
+            decorations.push({
+              range: new vscode.Range(startPos, startPos),
+              renderOptions: {
+                before: {
+                  contentText: newChar,
+                  color: "inherit",
+                  textDecoration:
+                    "none; position: relative; display: inline-block; width: 1ch;",
+                },
+              },
+            })
+            j++
           }
-
-          // ─────────────────────────────────────────────
-          // DELETION
-          // ─────────────────────────────────────────────
-          if (oldChar && !newChar) {
+          // else if (oldChar && original[i + 1] === newChar) {
+          //   // Deletion: hide a char without emitting a replacement
+          //   const endPos = editor.document.positionAt(
+          //     matchOffset + i + 1,
+          //   )
+          //   decorations.push({
+          //     range: new vscode.Range(startPos, endPos),
+          //   })
+          //   i++
+          // }
+          else {
+            // Fallback: hide original char (if any) and emit new char (if any)
             const endPos = editor.document.positionAt(
-              matchOffset + i + 1,
+              matchOffset + (oldChar ? i + 1 : i),
             )
-
             decorations.push({
               range: new vscode.Range(startPos, endPos),
-            })
-
-            i++
-            continue
-          }
-
-          // ─────────────────────────────────────────────
-          // Fallback
-          // ─────────────────────────────────────────────
-          const endPos = editor.document.positionAt(
-            matchOffset + (oldChar ? i + 1 : i),
-          )
-
-          decorations.push({
-            range: new vscode.Range(startPos, endPos),
-            renderOptions: {
-              before: {
-                contentText: newChar || "",
-                color: "inherit",
-                textDecoration:
-                  oldChar ?
-                    "none; position: absolute; width: 1ch;"
-                  : "none; position: relative;",
+              renderOptions: {
+                before: {
+                  contentText: newChar || "",
+                  color: "inherit",
+                  textDecoration:
+                    oldChar ?
+                      "none; position: absolute; width: 1ch;"
+                    : "none; position: relative;",
+                },
               },
-            },
-          })
-
-          if (oldChar) i++
-          if (newChar) j++
+            })
+            if (oldChar) i++
+            if (newChar) j++
+          }
         }
       }
     }
